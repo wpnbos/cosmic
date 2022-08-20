@@ -1,8 +1,6 @@
 from datetime import date, timedelta
 from typing import Tuple
 
-import pytest
-
 from model import Batch, OrderLine
 
 today = date.today()
