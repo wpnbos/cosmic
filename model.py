@@ -3,6 +3,10 @@ from datetime import date
 from typing import Any, Optional
 
 
+class OutOfStock(Exception):
+    pass
+
+
 @dataclass(frozen=True)
 class OrderLine:
     order_id: str
@@ -41,3 +45,22 @@ class Batch:
         if isinstance(other, Batch):
             return self.reference == other.reference
         return False
+
+    def __gt__(self, other: Any) -> bool:
+        if not isinstance(other, Batch):
+            return NotImplemented
+        if other.eta is None:
+            return False
+        if self.eta is None:
+            return False
+        return self.eta > other.eta
+
+
+def allocate(line: OrderLine, batches: list[Batch]) -> str:
+    try:
+        batch = next(batch for batch in sorted(batches) if batch.can_allocate(line))
+    except StopIteration:
+        raise OutOfStock(f"{line.sku} is out of stock")
+
+    batch.allocate(line)
+    return batch.reference
