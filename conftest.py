@@ -1,13 +1,14 @@
+import time
 from pathlib import Path
 from sqlite3 import OperationalError
-import time
+
 import pytest
 import requests
 from sqlalchemy import create_engine
 from sqlalchemy.orm import clear_mappers, sessionmaker
 
-from orm import metadata, start_mappers
 import config
+from orm import metadata, start_mappers
 
 
 @pytest.fixture
