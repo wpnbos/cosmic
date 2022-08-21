@@ -7,9 +7,8 @@ import model
 import orm
 import repository
 
-
 orm.start_mappers()
-get_session = sessionmaker(bind=create_engine(config.get_postgres_uri))
+get_session = sessionmaker(bind=create_engine(config.get_postgres_uri()))
 app = Flask(__name__)
 
 
@@ -18,7 +17,7 @@ def allocate_endpoint():
     session = get_session()
     batches = repository.SqlAlchemyRepository(session).list()
     line = model.OrderLine(
-        request.json["order_id"], request.json("sku"), request.json["quantity"]
+        request.json["order_id"], request.json["sku"], request.json["quantity"]
     )
 
     batchref = model.allocate(line, batches)

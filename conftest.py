@@ -46,6 +46,21 @@ def wait_for_api_to_come_up():
     pytest.fail("API never came up")
 
 
+@pytest.fixture(scope="session")
+def postgres_db():
+    engine = create_engine(config.get_postgres_uri())
+    wait_for_postgres_to_come_up(engine)
+    metadata.create_all(engine)
+    return engine
+
+
+@pytest.fixture
+def postgres_session(postgres_db):
+    start_mappers()
+    yield sessionmaker(bind=postgres_db)()
+    clear_mappers()
+
+
 @pytest.fixture
 def add_stock(postgres_session):
     batches_added = set()
@@ -70,7 +85,7 @@ def add_stock(postgres_session):
 
     for batch_id in batches_added:
         postgres_session.execute(
-            "DELETE FROM allocations WHERE batch_i=:batch_id", dict(batch_id=batch_id)
+            "DELETE FROM allocations WHERE batch_id=:batch_id", dict(batch_id=batch_id)
         )
         postgres_session.execute(
             "DELETE FROM batches WHERE id=:batch_id", dict(batch_id=batch_id)
