@@ -1,7 +1,7 @@
 import pytest
-import services
 
 import model
+import services
 from repository import FakeRepository
 
 
