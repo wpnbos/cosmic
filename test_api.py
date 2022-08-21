@@ -42,3 +42,24 @@ def test_api_returns_allocation(add_stock):
 
     assert r.status_code == 201
     assert r.json()["batchref"] == early_batchref
+
+
+@pytest.mark.usefixtures("restart_api")
+def test_allocations_are_persisted(add_stock):
+    sku = random_sku()
+    batch1, batch2 = random_batchref(1), random_batchref(2)
+    order1, order2 = random_order_id(1), random_order_id(2)
+    add_stock([(batch1, sku, 10, "2011-01-01"), (batch2, sku, 10, "2011-01-02")])
+    line1 = {"order_id": order1, "sku": sku, "quantity": 10}
+    line2 = {"order_id": order2, "sku": sku, "quantity": 10}
+    url = config.get_api_url()
+
+    # First order uses up all stock in batch 1
+    response = requests.post(f"{url}/allocate", json=line1)
+    assert response.status_code == 201
+    assert response.json()["batchref"] == batch1
+
+    # Second order should go to batch 2
+    response = requests.post(f"{url}/allocate", json=line2)
+    assert response.status_code == 201
+    assert response.json()["batchref"] == batch2
