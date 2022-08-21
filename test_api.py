@@ -35,7 +35,7 @@ def test_happy_path_returns_201_and_allocated_batch(add_stock):
             (otherbatch, othersku, 100, None),
         ]
     )
-    data = {"orderid": random_order_id(), "sku": sku, "qty": 3}
+    data = {"order_id": random_order_id(), "sku": sku, "quantity": 3}
     url = config.get_api_url()
 
     r = requests.post(f"{url}/allocate", json=data)
@@ -47,7 +47,7 @@ def test_happy_path_returns_201_and_allocated_batch(add_stock):
 @pytest.mark.usefixtures("restart_api")
 def test_unhappy_path_returns_400_and_error_message():
     unknown_sku, orderid = random_sku(), random_order_id()
-    data = {"orderid": orderid, "sku": unknown_sku, "qty": 20}
+    data = {"order_id": orderid, "sku": unknown_sku, "quantity": 20}
     url = config.get_api_url()
     r = requests.post(f"{url}/allocate", json=data)
     assert r.status_code == 400
