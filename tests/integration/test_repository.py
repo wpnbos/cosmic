@@ -1,5 +1,5 @@
-import model
-import repository
+import adapters.repository as repository
+import domain.model as model
 
 
 def test_repository_can_save_a_batch(session):
