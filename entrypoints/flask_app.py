@@ -1,10 +1,11 @@
+from datetime import datetime
+
 from flask import Flask, request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 import adapters.orm as orm
 import config
-import domain.model as model
 import services.services as services
 from adapters.repository import SqlAlchemyRepository
 
@@ -17,13 +18,35 @@ app = Flask(__name__)
 def allocate_endpoint():
     session = get_session()
     repository = SqlAlchemyRepository(session)
-    line = model.OrderLine(
-        request.json["order_id"], request.json["sku"], request.json["quantity"]
-    )
 
     try:
-        batchref = services.allocate(line, repository, session)
+        batchref = services.allocate(
+            request.json["order_id"],
+            request.json["sku"],
+            request.json["quantity"],
+            repository,
+            session,
+        )
     except services.InvalidSku as e:
         return {"message": str(e)}, 400
 
     return {"batchref": batchref}, 201
+
+
+@app.route("/add_batch", methods=["POST"])
+def add_batch():
+    session = get_session()
+    repo = SqlAlchemyRepository(session)
+    eta = request.json["eta"]
+    if eta is not None:
+        eta = datetime.fromisoformat(eta).date()
+    services.add_batch(
+        request.json["reference"],
+        request.json["sku"],
+        request.json["quantity"],
+        eta,
+        repo,
+        session,
+    )
+
+    return "OK", 201
